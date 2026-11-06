@@ -59,7 +59,38 @@ public class Marker {
      * Example: a = "ACGTAC", b = "TTACGT", k = 4: the words of a are ACGT, CGTA, GTAC; only ACGT is in b, so the answer is 1.
      */
     public static int sharedWords(String a, String b, int k) {
-        // TODO Mission 4
-        return -1;
+        if (k <= 0) throw new IllegalArgumentException("Window length must be positive");
+        if (k > a.length() || k > b.length()) return 0;
+        final long base = 257, mod = 1_000_000_007L;
+        long power = 1;
+        for (int i = 1; i < k; i++) power = power * base % mod;
+        Map<Long, List<Integer>> windows = new HashMap<>();
+        long hash = 0;
+        for (int i = 0; i < k; i++) hash = (hash * base + b.charAt(i)) % mod;
+        for (int i = 0; i + k <= b.length(); i++) {
+            windows.computeIfAbsent(hash, unused -> new ArrayList<>()).add(i);
+            if (i + k < b.length()) {
+                hash = (hash - b.charAt(i) * power % mod + mod) % mod;
+                hash = (hash * base + b.charAt(i + k)) % mod;
+            }
+        }
+        hash = 0;
+        for (int i = 0; i < k; i++) hash = (hash * base + a.charAt(i)) % mod;
+        int count = 0;
+        for (int i = 0; i + k <= a.length(); i++) {
+            List<Integer> candidates = windows.get(hash);
+            if (candidates != null) {
+                for (int start : candidates) {
+                    int j = 0;
+                    while (j < k && a.charAt(i + j) == b.charAt(start + j)) j++;
+                    if (j == k) { count++; break; }
+                }
+            }
+            if (i + k < a.length()) {
+                hash = (hash - a.charAt(i) * power % mod + mod) % mod;
+                hash = (hash * base + a.charAt(i + k)) % mod;
+            }
+        }
+        return count;
     }
 }
