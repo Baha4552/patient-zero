@@ -11,8 +11,14 @@ public class Marker {
      * Example: p = "ACGAC" gives [0, 0, 0, 1, 2]. The last number is the "Border length" line.
      */
     public static int[] prefixFunction(String p) {
-        // TODO Mission 3a
-        return new int[p.length()];
+        int[] pi = new int[p.length()];
+        for (int i = 1; i < p.length(); i++) {
+            int j = pi[i - 1];
+            while (j > 0 && p.charAt(i) != p.charAt(j)) j = pi[j - 1];
+            if (p.charAt(i) == p.charAt(j)) j++;
+            pi[i] = j;
+        }
+        return pi;
     }
 
     /**
@@ -22,8 +28,26 @@ public class Marker {
      * the first one is "First hit" (-1 when there is none).
      */
     public static int[] findAll(String text, String p) {
-        // TODO Mission 3b
-        return new int[0];
+        // The empty pattern occurs at every boundary, including after the text.
+        if (p.isEmpty()) {
+            int[] positions = new int[text.length() + 1];
+            for (int i = 0; i < positions.length; i++) positions[i] = i;
+            return positions;
+        }
+        int[] pi = prefixFunction(p);
+        List<Integer> positions = new ArrayList<>();
+        int j = 0;
+        for (int i = 0; i < text.length(); i++) {
+            while (j > 0 && text.charAt(i) != p.charAt(j)) j = pi[j - 1];
+            if (text.charAt(i) == p.charAt(j)) j++;
+            if (j == p.length()) {
+                positions.add(i - p.length() + 1);
+                j = pi[j - 1]; // Keep the border so overlaps are counted.
+            }
+        }
+        int[] result = new int[positions.size()];
+        for (int i = 0; i < result.length; i++) result[i] = positions.get(i);
+        return result;
     }
 
     /**
